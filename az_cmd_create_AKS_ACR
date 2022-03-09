@@ -1,0 +1,20 @@
+
+RGname=K8S_Examples             #Resource group name variable
+ACRname=K8SDevopsExamplesACR    #ACR name
+AKSname=K8S-Examples-cluster    #AKS cluster name   
+location=EastUS                 #region
+
+# Get the latest available Kubernetes version in my region
+version=$(az aks get-versions -l "East US"  --query 'orchestrators[-1].orchestratorVersion' -o tsv)
+
+# Create a Resource Group
+az group create --name $RGname --location $location 
+
+#Create AKS using the latest version available
+az aks create --resource-group $RGname --name $AKSname --enable-addons monitoring --kubernetes-version $version --generate-ssh-keys --location $location --node-count 2
+
+#Deploy Azure Container Registry(ACR)
+az acr create --resource-group $RGname  --name $ACRname --sku Standard --location $location		
+
+# Authenticate with Azure Container Registry from Azure Kubernetes Service 
+az aks update -n $AKSname -g $RGname --attach-acr $ACRname
